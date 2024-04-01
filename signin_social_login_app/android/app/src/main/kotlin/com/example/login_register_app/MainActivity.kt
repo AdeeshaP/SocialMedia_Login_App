@@ -1,4 +1,4 @@
-package com.example.signin_social_login_app
+package com.example.login_register_app
 
 import io.flutter.embedding.android.FlutterActivity
 

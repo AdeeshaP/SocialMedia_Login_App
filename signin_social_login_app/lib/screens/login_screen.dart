@@ -1,7 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:signin_social_login_app/authentication/auth.dart';
+import 'package:signin_social_login_app/database/database_config.dart';
 import 'package:signin_social_login_app/screens/home_screen.dart';
 import 'package:signin_social_login_app/screens/register_screen.dart';
 import 'package:social_login_buttons/social_login_buttons.dart';
@@ -22,7 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   RegExp regex = new RegExp(r'^.{3,}$');
   var localAuth = LocalAuthentication();
-  late SharedPreferences storage;
 
   @override
   void initState() {
@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
         height: double.infinity,
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/images/blue-fluid-background.png"),
+            image: AssetImage("assets/images/purple-fluid.jpg"),
             fit: BoxFit.fill,
           ),
         ),
@@ -142,9 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               TextStyle(color: Colors.black87, fontSize: 14),
                           prefixIconConstraints: BoxConstraints(minWidth: 40),
                           prefixIcon: Icon(
-                              color: Colors.grey[700],
-                              Icons.password_outlined,
-                              size: 25),
+                              color: Colors.grey[700], Icons.lock, size: 25),
                           suffixIcon: IconButton(
                             color: Colors.grey[700],
                             onPressed: _seeOrHidePassword,
@@ -190,11 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             minimumSize: MaterialStateProperty.all(
                               Size(MediaQuery.of(context).size.width, 55),
                             )),
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => HomeScreen()),
-                          );
-                        },
+                        onPressed: () {},
                       ),
                     ),
                     SizedBox(height: 10),
@@ -214,10 +208,40 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: const EdgeInsets.all(10.0),
                       child: SocialLoginButton(
                         borderRadius: 50,
+                        fontSize: 18,
                         width: MediaQuery.of(context).size.width,
                         buttonType: SocialLoginButtonType.google,
-                        onPressed: () {},
-                        fontSize: 20,
+                        onPressed: () async {
+                          var result =
+                              await AuthenticationMethods().signInWithGoogle();
+
+                          if (result.user != null) {
+                            Map<String, dynamic> infor = {
+                              "email": result.user!.email,
+                              "photoUrl": result.user!.photoURL,
+                              "username": result.user!.displayName,
+                            };
+
+                            await DatabaseMethods()
+                                .addUser(result.user!.uid, infor);
+
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => HomeScreen(
+                                  gmail: result.user!.email!,
+                                  username: result.user!.displayName!,
+                                  photoUrl: result.user!.photoURL!,
+                                ),
+                              ),
+                            );
+                          } else {
+                            const snackBar = SnackBar(
+                              content: Text("Error while login with Google!!"),
+                            );
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(snackBar);
+                          }
+                        },
                       ),
                     ),
                     SizedBox(height: 30),

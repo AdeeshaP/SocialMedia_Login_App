@@ -2,7 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen(
+      {super.key,
+      required this.username,
+      required this.gmail,
+      required this.photoUrl});
+
+  final String username;
+  final String gmail;
+  final String photoUrl;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -30,20 +38,33 @@ class _HomeScreenState extends State<HomeScreen> {
           height: double.infinity,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage("assets/images/blue-fluid-background.png"),
+              image: AssetImage("assets/images/purple-fluid.jpg"),
               fit: BoxFit.fill,
             ),
           ),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text(
-              "Welcome",
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.w800,
-                color: Colors.amber[800],
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 100,
+                width: 100,
+                child: CircleAvatar(
+                  backgroundImage: NetworkImage(widget.photoUrl),
+                  radius: 90,
+                ),
               ),
-            )
-          ]),
+              SizedBox(height: 10),
+              Text(
+                "Welcome\n${widget.username}",
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.amber[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );

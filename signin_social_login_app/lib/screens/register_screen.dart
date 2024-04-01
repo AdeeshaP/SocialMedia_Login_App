@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:signin_social_login_app/authentication/auth.dart';
 import 'package:social_login_buttons/social_login_buttons.dart';
 import 'package:signin_social_login_app/screens/home_screen.dart';
 import 'package:signin_social_login_app/screens/login_screen.dart';
@@ -25,7 +25,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   RegExp regex = new RegExp(r'^.{3,}$');
   var localAuth = LocalAuthentication();
-  late SharedPreferences storage;
 
   @override
   void initState() {
@@ -55,13 +54,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         height: double.infinity,
         decoration: BoxDecoration(
           image: DecorationImage(
-            // image: AssetImage("assets/images/bg2.PNG"),
-            image: AssetImage("assets/images/blue-fluid-background.png"),
+            image: AssetImage("assets/images/purple-fluid.jpg"),
             fit: BoxFit.fill,
           ),
         ),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          // Image.asset('assets/images/logo.png', width: 200, height: 200),
           Center(
             child: Form(
               key: _key,
@@ -88,7 +85,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     SizedBox(height: 30),
                     Padding(
                       padding:
-                          EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                       child: TextFormField(
                         controller: usernameController,
                         autofocus: false,
@@ -185,9 +182,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               TextStyle(color: Colors.black87, fontSize: 14),
                           prefixIconConstraints: BoxConstraints(minWidth: 40),
                           prefixIcon: Icon(
-                              color: Colors.grey[700],
-                              Icons.password_outlined,
-                              size: 25),
+                              color: Colors.grey[700], Icons.lock, size: 25),
                           suffixIcon: IconButton(
                             color: Colors.grey[700],
                             onPressed: _seeOrHidePassword,
@@ -204,55 +199,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         validator: (value) {
                           if (value!.isEmpty) {
                             return ("Password is required..");
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                      child: TextFormField(
-                        controller: passwordController,
-                        autofocus: false,
-                        onSaved: (value) {
-                          passwordController.text = value!;
-                          FocusScope.of(context).unfocus();
-                        },
-                        textInputAction: TextInputAction.next,
-                        keyboardType: TextInputType.name,
-                        style: TextStyle(
-                            fontSize: 14, height: 1.2, color: Colors.black),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white.withOpacity(0.8),
-                          border: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(50)),
-                          labelText: "Confirm Password",
-                          labelStyle:
-                              TextStyle(color: Colors.black87, fontSize: 14),
-                          prefixIconConstraints: BoxConstraints(minWidth: 40),
-                          prefixIcon: Icon(
-                              color: Colors.grey[700],
-                              Icons.password_outlined,
-                              size: 25),
-                          suffixIcon: IconButton(
-                            color: Colors.grey[700],
-                            onPressed: _seeOrHidePassword,
-                            icon: Icon(
-                                _obscureText == true
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                                size: 25),
-                          ),
-                          hintText: "Enter the password again",
-                          hintStyle:
-                              TextStyle(color: Colors.white60, fontSize: 12),
-                        ),
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return ("Password confirmation is required..");
                           }
                           return null;
                         },
@@ -282,11 +228,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             minimumSize: MaterialStateProperty.all(
                               Size(MediaQuery.of(context).size.width, 55),
                             )),
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => HomeScreen()),
-                          );
-                        },
+                        onPressed: () {},
                       ),
                     ),
                     SizedBox(height: 10),
@@ -308,8 +250,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: 50,
                         width: MediaQuery.of(context).size.width,
                         buttonType: SocialLoginButtonType.google,
-                        onPressed: () {},
-                        fontSize: 20,
+                        onPressed: () async {
+                          var result =
+                              await AuthenticationMethods().signInWithGoogle();
+
+                          if (result.user != null) {
+                            print(
+                                "login success >> ${result.user!.email} , ${result.user!.displayName} , ${result.user!.uid}");
+                            print(
+                                "login success >> ${result.user!.photoURL} , ${result.additionalUserInfo!.providerId}");
+
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => HomeScreen(
+                                  gmail: result.user!.email!,
+                                  username: result.user!.displayName!,
+                                  photoUrl: result.user!.photoURL!,
+                                ),
+                              ),
+                            );
+                          } else {
+                            const snackBar = SnackBar(
+                              content: Text("Error while login with Google!!"),
+                            );
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(snackBar);
+                          }
+                        },
+                        fontSize: 18,
                       ),
                     ),
                     SizedBox(height: 20),
